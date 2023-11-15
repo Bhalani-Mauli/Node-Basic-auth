@@ -26,12 +26,10 @@ router.post("/signup", (req, res, next) => {
 
   const regex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
   if (!regex.test(password)) {
-    res
-      .status(500)
-      .render("auth/signup", {
-        errorMessage:
-          "Password needs to have at least 6 chars and must contain at least one number, one lowercase and one uppercase letter.",
-      });
+    res.status(500).render("auth/signup", {
+      errorMessage:
+        "Password needs to have at least 6 chars and must contain at least one number, one lowercase and one uppercase letter.",
+    });
     return;
   }
 
@@ -71,6 +69,51 @@ router.post("/signup", (req, res, next) => {
     });
 });
 
-router.get("/userProfile", (req, res) => res.render("users/user-profile"));
+router.get("/userProfile", (req, res) => {
+  res.render("users/user-profile", { userInSession: req.session.currentUser });
+});
+
+// --------LOGIN--------
+router.get("/login", (req, res) => res.render("auth/login"));
+
+router.post("/login", (req, res, next) => {
+  console.log("SESSION =====> ", req.session);
+  const { email, password } = req.body;
+
+  if (email === "" || password === "") {
+    res.render("auth/login", {
+      errorMessage: "Please enter both, email and password to login.",
+    });
+    return;
+  }
+
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        console.log("Email not registered. ");
+        res.render("auth/login", {
+          errorMessage: "User not found and/or incorrect password.",
+        });
+        return;
+      } else if (bcryptjs.compareSync(password, user.passwordHash)) {
+        //res.render("users/user-profile", { user });
+        req.session.currentUser = user;
+        res.redirect("/userProfile");
+      } else {
+        console.log("Incorrect password. ");
+        res.render("auth/login", {
+          errorMessage: "User not found and/or incorrect password.",
+        });
+      }
+    })
+    .catch((error) => next(error));
+});
+
+router.post("/logout", (req, res, next) => {
+  req.session.destroy((err) => {
+    if (err) next(err);
+    res.redirect("/");
+  });
+});
 
 module.exports = router;
