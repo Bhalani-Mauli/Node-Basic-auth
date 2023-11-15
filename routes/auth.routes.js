@@ -26,12 +26,10 @@ router.post("/signup", (req, res, next) => {
 
   const regex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
   if (!regex.test(password)) {
-    res
-      .status(500)
-      .render("auth/signup", {
-        errorMessage:
-          "Password needs to have at least 6 chars and must contain at least one number, one lowercase and one uppercase letter.",
-      });
+    res.status(500).render("auth/signup", {
+      errorMessage:
+        "Password needs to have at least 6 chars and must contain at least one number, one lowercase and one uppercase letter.",
+    });
     return;
   }
 
@@ -72,5 +70,8 @@ router.post("/signup", (req, res, next) => {
 });
 
 router.get("/userProfile", (req, res) => res.render("users/user-profile"));
+
+// --------LOGIN--------
+router.get("/login", (req, res) => res.render("auth/login"));
 
 module.exports = router;
